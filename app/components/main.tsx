@@ -8,6 +8,8 @@ import { ethers } from "ethers";
 import { useMoralis, useWeb3Contract } from "react-moralis";
 import addresses from "../../constants/contractAddresses.json";
 import abi from "../../constants/abi.json";
+import Channels from "./channels";
+// import abi from "../../constants/abi.json"
 
 const icons = [<FaEthereum />, <FaPlus />, <FaSearchengin />];
 
@@ -25,35 +27,41 @@ export default function Main() {
   const { chainId, account, isWeb3Enabled, web3 } = useMoralis();
   const address: contractAddressesInterface = addresses;
 
+  const ABI: any = abi;
+
   const contractAddy = chainId
     ? address[parseInt(chainId).toString()]["dappcord"][0]
     : null;
 
+    let xyz;
+
   const loadBlockchainData = async () => {
     const arr: any[] = [];
-    const provider = new ethers.providers.Web3Provider(web3!.provider);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(contractAddy!, ABI, provider);
+    setDappcord(contract);
 
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(contractAddy!, abi, provider);
-    const totalChannels = await dappcord.totalChannels()
+    // const totalChannels = await dappcord.totalChannels();
+    const owner= await dappcord.getOwner();
+    xyz = owner
+    
 
-
-    for (let i = 1; i <= totalChannels; i++) {
-      const res = await contract.getChannels(i);
+    for (let i = 1; i <= 3; i++) {
+      const res = await dappcord.getChannels(i);
       arr.push(res);
     }
 
-    setDappcord(contract);
     setChannels(arr);
   };
 
+  console.log(xyz)
+
   useEffect(() => {
     if (isWeb3Enabled) {
-      loadBlockchainData();
+      loadBlockchainData(
     }
   }, [isWeb3Enabled]);
 
-  console.log(channels);
   // <FaPerson />
   return (
     <section className="h-full">
@@ -71,33 +79,7 @@ export default function Main() {
           })}
         </div>
 
-        <div className="flex flex-col items-start bg-zinc-900 w-[25%] h-full font-semibold text-neutral-700 gap-y-8 pt-4 text-sm">
-          <div className="flex gap-y-1 p-2 flex-col">
-            <h3
-              className="uppercase 
-             tracking-tighter"
-            >
-              text channels
-            </h3>
-
-            {channels.length > 0 && (
-              <div className="pl-3 space-y-1">
-                {channels.map((channel, index) => {
-                  return <h3 key={index}>{channel.cost.toString()}</h3>;
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-y-1 p-2 flex-col">
-            <h3 className="uppercase tracking-tighter">voice channels</h3>
-            <div className="pl-3 space-y-1">
-              <h3>channel 1</h3>
-              <h3>channel 2</h3>
-              <h3>channel 3</h3>
-            </div>
-          </div>
-        </div>
+        <Channels channels={channels} />
 
         <div className="w-full p-3 flex flex-col-reverse">
           <form
